@@ -84,7 +84,7 @@ const route = (at: [number, number], pts: [number, number][], d = 0.9) =>
     .map(({ x, y }) => ({ x: x - at[0], y: y - at[1] }))
 
 export default () => (
-  <board width="20mm" height="20mm" thickness="1.6mm" pcbStyle={{ silkscreenFontSize: 0.4 }} schTraceAutoLabelEnabled schMaxTraceDistance={5}>
+  <board width="20mm" height="20mm" borderRadius={2} thickness="1.6mm" pcbStyle={{ silkscreenFontSize: 0.4 }} schTraceAutoLabelEnabled schMaxTraceDistance={5}>
 
     <schematicsheet name="Flasher" displayName="NE555 LED flasher" sheetIndex={0} sheetWidth="170mm" sheetHeight="90mm" />
     <schematicsection name="Power" displayName="Power input" />

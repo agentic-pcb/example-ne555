@@ -33,14 +33,14 @@ First complete draft: 5V NE555 LED flasher, builds cleanly (`tsci build`), `tsci
 - **Ground pour:** solid copper pour on the bottom layer only, tied to GND (0.2 mm clearance, `boardEdgeMargin="1.27mm"`; DESIGN.md rule 16 says no top pour). The top-layer GND traces are still routed; the pour is tied in through J1.GND and the GND traces' layer-change vias and adds return-path area/shielding.
 - **Trace width:** V5 and GND traces are 0.3 mm (`thickness="0.3mm"` on every trace that touches those nets); signal traces keep the 0.15 mm default.
 - **Routing:** V5 is hand-routed on the top layer (`pcbPath` via the `route()` helper, which cuts every 90 degree corner into two 45 degree bends, DESIGN.md rule 17; no vias); GND and the signals are autorouted. Two vias remain on the GND tree (rule 15 covers supply nets other than GND, so they are fine). Hand-routed traces anchor their `pcbPath` to the `from` part's centre, and C3 has `maxDecouplingTraceLength={3}` (the 1 mm default would stop the autorouter, since its V5 pad is 2.60 mm from U1 VCC). Sensible to review in `tsci dev` before fabrication.
-- **Layout:** see the published [DESIGN.md](https://github.com/agentic-pcb/example-base/blob/main/DESIGN.md); the "Design rule audit" table below audits all 27 rules. Parts sit on a 1.27 mm grid in two rows of three 0603 parts (top y = +3.81: R1, C3, R3; bottom y = -3.81: R2, C1, C2; 3.81 mm pitch), with J1 and D1 mirrored at x = ±6.35. The rows are pulled in from the former ±5.08 so every pad stays at least 4.2 mm from a hole centre (screw head area, rule 18).
+- **Layout:** see the published [DESIGN.md](https://github.com/agentic-pcb/example-base/blob/main/DESIGN.md); the "Design rule audit" table below audits all 28 rules. The board corners are rounded with a 2 mm radius (rule 28). Parts sit on a 1.27 mm grid in two rows of three 0603 parts (top y = +3.81: R1, C3, R3; bottom y = -3.81: R2, C1, C2; 3.81 mm pitch), with J1 and D1 mirrored at x = ±6.35. The rows are pulled in from the former ±5.08 so every pad stays at least 4.2 mm from a hole centre (screw head area, rule 18).
 - **Decoupling (rule 24, a must):** C3 (100 nF) sits directly above U1 pin 8 (VCC), 2.60 mm centre to centre. Its V5 pad is pin 2 (a capacitor is non-polar, so pin 1/pin 2 are swapped in the TSX) so the V5 pad is the one nearer VCC. C2 (CTRL bypass) sits below pin 5.
 - **Silkscreen:** designators 0.4 mm, 1.1 mm above their part (`pcbSx`); J1's V5/GND labels are 0.5 mm. J1 and the labels are explicit `<silkscreentext>` elements because `pcbSx` cannot tell a designator from a pin label.
 - **Schematic:** four `<schematicsection>`s (Power input, Timer core, Timing network, LED output) read left to right; U1 has supply on top and GND at the bottom.
 
 ## Design rule audit
 
-Audit of the layout against the 27 rules of the published [DESIGN.md](https://github.com/agentic-pcb/example-base/blob/main/DESIGN.md) (the single source of truth: it is referenced by URL, not copied into this project, so re-check the numbers below whenever it changes). Board 20 x 20 mm; grid origin = board centre, step 1.27 mm; numbers measured from `dist/index/circuit.json`. One row per rule; keep it current after layout changes.
+Audit of the layout against the 28 rules of the published [DESIGN.md](https://github.com/agentic-pcb/example-base/blob/main/DESIGN.md) (the single source of truth: it is referenced by URL, not copied into this project, so re-check the numbers below whenever it changes). Board 20 x 20 mm; grid origin = board centre, step 1.27 mm; numbers measured from `dist/index/circuit.json`. One row per rule; keep it current after layout changes.
 
 | # | Status | How |
 | --- | --- | --- |
@@ -69,8 +69,9 @@ Audit of the layout against the 27 rules of the published [DESIGN.md](https://gi
 | 23 | n/a | single 5 V flasher: no analog signal, sensor or high-current line |
 | 24 | pass | C3 pad 2 (V5) is 2.60 mm from U1 VCC (pin 8), centre to centre; V5 trace 0.3 mm; its GND pad goes through the GND net |
 | 25 | n/a | no crystal |
-| 26 | pass | closest pad is 2.90 mm and closest silkscreen text 2.05 mm from the edge; the GND pour stops 1.27 mm from the edge; the mounting holes (0.78 mm edge to board edge) are deliberate edge parts |
+| 26 | pass | closest pad is 2.90 mm and closest silkscreen text 2.05 mm from the edge; the GND pour stops 1.27 mm from the edge; no panel is used, so the 1.27 mm clearance applies (measured from the curve at the corners); the mounting holes (0.78 mm edge to board edge) are deliberate edge parts |
 | 27 | n/a | no heat-producing parts (LED about 8 mA, NE555 a few mA) |
+| 28 | pass | `<board borderRadius={2}>` rounds all four outer corners with a 2 mm radius; the mounting holes sit about 0.94 mm inside the curve and no other part, pad or text is near a corner |
 
 ## Finding JLCPCB parts
 
