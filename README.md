@@ -17,7 +17,7 @@ First complete draft: 5V NE555 LED flasher, builds cleanly (`tsci build`), `tsci
 - **Purpose:** flash a red SMD LED, 0.3 s ON / 0.6 s OFF, using an NE555.
 - **Board size / form factor:** 20 x 20 mm, all parts on the top side (8 x 8 mm was considered but cannot hold the SOIC-8 plus header and passives).
 - **Power sources and rails:** single 5 V input on a 2-pin 2.54 mm header (J1: `V5`, `GND`). NE555 minimum supply is 4.5 V, so 5 V is fine.
-- **I/O (connectors, headers, mounting holes):** J1 power header, 4x 3.2 mm (M3) mounting holes, one near each corner (7 mm from the centre on both axes).
+- **I/O (connectors, headers, mounting holes):** J1 power header, 4x 3.2 mm (M3) mounting holes, one near each corner (7.62 mm from the centre on both axes).
 - **Mechanical constraints:** none beyond the above.
 - **Manufacturer and constraints:** JLCPCB; all resistors/capacitors 0603; basic parts where one exists; Economic assembly (only parts marked "PCBA Type: Economic and Standard", never "Standard Only").
 
@@ -33,6 +33,8 @@ First complete draft: 5V NE555 LED flasher, builds cleanly (`tsci build`), `tsci
 - **Ground pour:** solid copper pour on the bottom layer tied to GND (0.2 mm clearance). The top-layer GND traces are still routed; the pour is tied in through the GND traces' layer-change vias and adds return-path area/shielding. No dedicated stitching vias yet.
 - **Trace width:** V5 and GND traces are 0.3 mm (`thickness="0.3mm"` on every trace that touches those nets); signal traces keep the 0.15 mm default.
 - **Routing:** autorouted with a few vias; sensible to review in `tsci dev` before fabrication.
+
+Layout rules: see [DESIGN.md](DESIGN.md); its "Project status" lists which rules this board meets and where it deviates. Parts sit on a 1.27 mm grid in two aligned rows (R1-R3 at y = +5.08, C1-C3 at y = -5.08), with J1 and D1 mirrored at x = ±7.62.
 
 ## Finding JLCPCB parts
 
@@ -62,6 +64,7 @@ Before sharing or fabricating, work through the checks in order: `tsci check net
 ## References
 
 - [tscircuit docs](https://docs.tscircuit.com/); the full docs are also available as one text file at https://docs.tscircuit.com/llms.txt
+- [DESIGN.md](DESIGN.md): PCB alignment and routing rules
 - [tscircuit datasheets](https://tscircuit.com/datasheets)
 - [jlcsearch](https://jlcsearch.tscircuit.com/)
 - AI skill: [tscircuit/skill](https://github.com/tscircuit/skill), installed in `.claude/skills/tscircuit/`

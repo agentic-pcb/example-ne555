@@ -13,7 +13,7 @@ A tscircuit project: PCB designs are written as React/TSX and compiled by the `t
 ## Commands
 
 - `npm start` — `tsci dev`, interactive preview server (interactive visual feedback only; prefer `tsci build` for iteration)
-- `npm run check:fast` — `tsc --noEmit`; the only JS-level check (no linter or tests), catches wrong prop names/types. `check:wiring` adds netlist + schematic-placement; `check:full` adds `tsci build` + `tsci check shorts`
+- `npm run check:fast` — `tsc --noEmit`; the only JS-level check (no linter or tests unless the optional Prettier + ESLint setup below was added), catches wrong prop names/types. `check:wiring` adds netlist + schematic-placement; `check:full` adds `tsci build` + `tsci check shorts`
 - `npm run update:skill` — re-installs the vendored `.claude/skills/tscircuit/` from upstream (`tscircuit/skill`); never edit that folder by hand. `npm run update:llms` fetches the docs dump
 - `npx tsci build [file]` — compile and validate; auto-detects `index.circuit.tsx` or `mainEntrypoint` in `tscircuit.config.json`. Add `--pcb-png` or `--all-images` for renders
 - `npx tsci snapshot [--pcb-only|--3d]` — regenerate visuals; `--test` fails on visual diffs without overwriting
@@ -30,9 +30,22 @@ When to run checks (tiered, not everything every time):
 - Before committing a design change and before fab: `npm run check:full` (check:wiring + `tsci build` + `tsci check shorts`). Before ordering only: `npm run export:gerbers`.
 - Schematic SVG export (`tsci export -f schematic-svg`) is for inspecting schematic changes, not a gate. Docs-only commits need no checks.
 
+## Optional: Prettier + ESLint (not set up in this project)
+
+This project ships without a formatter or linter. When the user wants one (ask first, don't add it unprompted), a light setup that worked in `bedroom-clock`:
+
+- Dev deps: `prettier eslint @eslint/js typescript-eslint eslint-config-prettier eslint-plugin-simple-import-sort`. Skip `eslint-plugin-unicorn`: it flags the short geometry names and fights compact math code.
+- `.prettierrc`: `singleQuote: true`, `trailingComma: "none"`, `endOfLine: "lf"`, **`printWidth: 300`** so each tscircuit element (`<chip ...>`, `<smtpad ...>`, `<trace pcbPath=...>`) stays on one line. Ask whether to keep semicolons (Prettier default; the user's other repos use them) or set `semi: false`.
+- `.prettierignore`: `dist`, `.tscircuit`, `.claude`, `__snapshots__`, `docs`, `node_modules`, `package-lock.json`, `*.md`, `*.json` (never reformat the vendored skill, snapshots or the README tables).
+- `eslint.config.mjs` (flat config, same ignores): `js.configs.recommended`, `tseslint.configs.recommended`, `eslint-config-prettier`, plus rules `curly: ['error', 'multi']`, `simple-import-sort/imports` and `/exports`, `@typescript-eslint/consistent-type-imports` (inline type imports).
+- Scripts: `format` = `prettier --write .`, `lint` = `eslint .`, and `check:fast` = `tsc --noEmit && eslint . && prettier --check .` (so `check:wiring` and `check:full` inherit it). Run `eslint . --fix` and `npm run format` once as their own commit.
+- Verify formatting changed no design: `npx tsci snapshot --pcb-only --test` and `--schematic-only --test` must show no diff. Then update this file's Commands section (drop "no linter", mention `format`/`lint`).
+
 ## Conventions and rules
 
-- Detailed guidance lives in the bundled skill: `.claude/skills/tscircuit/` (SKILL.md, CLI.md, SYNTAX.md, WORKFLOW.md, CHECKLIST.md, FOOTPRINTS.md, per-element docs in `elements/`, templates in `templates/`).- Don't invent JSX props or CLI flags; confirm in `elements/*.md` or `--help`. Learn from https://docs.tscircuit.com/ before writing or changing circuit code, not only for what the skill doesn't cover. `https://docs.tscircuit.com/llms.txt` (same as `ai.txt`) is the whole docs set as one ~870 KB Repomix dump: run `npm run update:llms` to save it as `docs/llms.txt` (gitignored) and grep that file, never load it whole. The skill comes from https://github.com/tscircuit/skill (`npx skills add tscircuit/skill`).
+- PCB layout follows `DESIGN.md` (alignment and routing rules). Read it before moving or adding parts, pads or labels.
+- Detailed guidance lives in the bundled skill: `.claude/skills/tscircuit/` (SKILL.md, CLI.md, SYNTAX.md, WORKFLOW.md, CHECKLIST.md, FOOTPRINTS.md, per-element docs in `elements/`, templates in `templates/`).
+- Don't invent JSX props or CLI flags; confirm in `elements/*.md` or `--help`. Learn from https://docs.tscircuit.com/ before writing or changing circuit code, not only for what the skill doesn't cover. `https://docs.tscircuit.com/llms.txt` (same as `ai.txt`) is the whole docs set as one ~870 KB Repomix dump: run `npm run update:llms` to save it as `docs/llms.txt` (gitignored) and grep that file, never load it whole. The skill comes from https://github.com/tscircuit/skill (`npx skills add tscircuit/skill`).
 - Define `pinLabels` and `pinAttributes` on chips before wiring traces. Reference pins by label (`U1.VCC`, `net.GND`).
 - Prefer a footprinter string over a custom `<footprint>`; read FOOTPRINTS.md before writing custom footprints. Exception: `index.circuit.tsx` deliberately uses local `<footprint>` definitions for U1/D1 (pad geometry copied from the JLCPCB parts) because `footprint="jlcpcb:..."` fetches from EasyEDA at build time and fails on HTTP 403 rate limits; keep that pattern for other JLCPCB-specific parts. Custom footprints get no 3D body, so U1/D1 pass `cadModel={<cadmodel modelUrl={...} />}` with absolute URLs `https://modelcdn.tscircuit.com/jscad_models/<footprinter>.glb`. Don't import local `./models/*.glb`: `tsci build` resolves them but the `tsci dev` 3D viewer 404s on the relative path. Check both `3d.png` and the dev 3D tab after changing.
 - The parts engine is disabled (`tscircuit.config.ts` `platformConfig.partsEngineDisabled`; `build`/`snapshot`/`export` also take `--disable-parts-engine`, `dev` and `check` don't). With it on, every part carrying `supplierPartNumbers` triggers an EasyEDA footprint cross-check that returns HTTP 403 `source_part_not_found_warning`s. A JLCPCB login does not help; tsci uses no JLC credentials. Pin parts via `supplierPartNumbers` yourself (the engine's auto-picking is off).

@@ -67,22 +67,22 @@ export default () => (
 
     <schematicsheet name="Flasher" displayName="NE555 LED flasher" sheetIndex={0} sheetWidth="110mm" sheetHeight="145mm" />
 
-    <hole diameter="3.2mm" pcbX={-7} pcbY={7} />
-    <hole diameter="3.2mm" pcbX={7} pcbY={7} />
-    <hole diameter="3.2mm" pcbX={-7} pcbY={-7} />
-    <hole diameter="3.2mm" pcbX={7} pcbY={-7} />
+    <hole diameter="3.2mm" pcbX={-7.62} pcbY={7.62} />
+    <hole diameter="3.2mm" pcbX={7.62} pcbY={7.62} />
+    <hole diameter="3.2mm" pcbX={-7.62} pcbY={-7.62} />
+    <hole diameter="3.2mm" pcbX={7.62} pcbY={-7.62} />
 
-    <pinheader name="J1" schSheetName="Flasher" schX={-3.5} schY={-6.2} pinCount={2} pitch="2.54mm" pinLabels={["V5", "GND"]} showSilkscreenPinLabels pcbX={-8} pcbY={0} pcbRotation="90deg" doNotPlace />
+    <pinheader name="J1" schSheetName="Flasher" schX={-3.5} schY={-6.2} pinCount={2} pitch="2.54mm" pinLabels={["V5", "GND"]} showSilkscreenPinLabels pcbX={-7.62} pcbY={0} pcbRotation="90deg" doNotPlace />
 
     <NE555 name="U1" schSheetName="Flasher" schX={0} schY={0} pcbX={0} pcbY={0} />
 
-    <resistor name="R1" schSheetName="Flasher" schX={3} schY={1.2} schRotation="270deg" resistance="43k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2907038"] }} pcbX={-3} pcbY={5} />
-    <resistor name="R2" schSheetName="Flasher" schX={3} schY={-0.8} schRotation="270deg" resistance="43k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2907038"] }} pcbX={3} pcbY={5} />
-    <capacitor name="C1" schSheetName="Flasher" schX={3} schY={-2.8} schRotation="270deg" capacitance="10uF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C19702"] }} pcbX={0} pcbY={-5} />
-    <capacitor name="C2" schSheetName="Flasher" schX={-3} schY={-1.1} schRotation="270deg" capacitance="10nF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C57112"] }} pcbX={-3.6} pcbY={-5} />
-    <capacitor name="C3" schSheetName="Flasher" schX={-1} schY={-6.6} schRotation="270deg" capacitance="100nF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C14663"] }} pcbX={3.6} pcbY={-5} />
-    <resistor name="R3" schSheetName="Flasher" schX={1.5} schY={3.6} schRotation="270deg" resistance="330" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C23138"] }} pcbX={7.5} pcbY={3} />
-    <led name="D1" schSheetName="Flasher" schX={1.5} schY={2.2} schRotation="270deg" color="red" footprint={ledFootprint} cadModel={<cadmodel modelUrl={led0603Model} />} supplierPartNumbers={{ jlcpcb: ["C965799"] }} pcbX={8.5} pcbY={0} pcbRotation="90deg" />
+    <resistor name="R1" schSheetName="Flasher" schX={3} schY={1.2} schRotation="270deg" resistance="43k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2907038"] }} pcbX={-5.08} pcbY={5.08} />
+    <resistor name="R2" schSheetName="Flasher" schX={3} schY={-0.8} schRotation="270deg" resistance="43k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2907038"] }} pcbX={0} pcbY={5.08} />
+    <capacitor name="C1" schSheetName="Flasher" schX={3} schY={-2.8} schRotation="270deg" capacitance="10uF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C19702"] }} pcbX={0} pcbY={-5.08} />
+    <capacitor name="C2" schSheetName="Flasher" schX={-3} schY={-1.1} schRotation="270deg" capacitance="10nF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C57112"] }} pcbX={5.08} pcbY={-5.08} />
+    <capacitor name="C3" schSheetName="Flasher" schX={-1} schY={-6.6} schRotation="270deg" capacitance="100nF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C14663"] }} pcbX={-5.08} pcbY={-5.08} />
+    <resistor name="R3" schSheetName="Flasher" schX={1.5} schY={3.6} schRotation="270deg" resistance="330" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C23138"] }} pcbX={5.08} pcbY={5.08} />
+    <led name="D1" schSheetName="Flasher" schX={1.5} schY={2.2} schRotation="270deg" color="red" footprint={ledFootprint} cadModel={<cadmodel modelUrl={led0603Model} />} supplierPartNumbers={{ jlcpcb: ["C965799"] }} pcbX={7.62} pcbY={0} pcbRotation="90deg" />
 
     <trace name="T1" from="J1.V5" to="net.V5" thickness="0.3mm" />
     <trace name="T2" from="J1.GND" to="net.GND" thickness="0.3mm" />
