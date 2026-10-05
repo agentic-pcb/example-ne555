@@ -17,7 +17,7 @@ First complete draft: 5V NE555 LED flasher, builds cleanly (`tsci build`), `tsci
 - **Purpose:** flash a red SMD LED, 0.3 s ON / 0.6 s OFF, using an NE555.
 - **Board size / form factor:** 20 x 20 mm, all parts on the top side (8 x 8 mm was considered but cannot hold the SOIC-8 plus header and passives).
 - **Power sources and rails:** single 5 V input on a 2-pin 2.54 mm header (J1: `V5`, `GND`). NE555 minimum supply is 4.5 V, so 5 V is fine.
-- **I/O (connectors, headers, mounting holes):** J1 power header, 4x 3.2 mm (M3) mounting holes, one near each corner (7.62 mm from the centre on both axes).
+- **I/O (connectors, headers, mounting holes):** J1 power header, 4x 3.2 mm (M3) mounting holes, one near each corner (7.62 mm from the centre on both axes); the area within 3 mm of each hole centre is kept free of parts, pads and silkscreen (DESIGN.md rule 16).
 - **Mechanical constraints:** none beyond the above.
 - **Manufacturer and constraints:** JLCPCB; all resistors/capacitors 0603; basic parts where one exists; Economic assembly (only parts marked "PCBA Type: Economic and Standard", never "Standard Only").
 
@@ -32,9 +32,11 @@ First complete draft: 5V NE555 LED flasher, builds cleanly (`tsci build`), `tsci
 - **Assembly:** J1 is `doNotPlace` (through-hole header, hand-soldered) so it stays out of the JLCPCB BOM/CPL; everything else is SMD on the top side.
 - **Ground pour:** solid copper pour on the bottom layer tied to GND (0.2 mm clearance). The top-layer GND traces are still routed; the pour is tied in through the GND traces' layer-change vias and adds return-path area/shielding. No dedicated stitching vias yet.
 - **Trace width:** V5 and GND traces are 0.3 mm (`thickness="0.3mm"` on every trace that touches those nets); signal traces keep the 0.15 mm default.
-- **Routing:** autorouted with a few vias; sensible to review in `tsci dev` before fabrication.
-
-Layout rules: see [DESIGN.md](DESIGN.md); its "Project status" lists which rules this board meets and where it deviates. Parts sit on a 1.27 mm grid in two aligned rows (R1-R3 at y = +5.08, C1-C3 at y = -5.08), with J1 and D1 mirrored at x = ±7.62.
+- **Routing:** autorouted; two vias remain on the GND tree and none on V5 (DESIGN.md rule 15 is an accepted exception). Sensible to review in `tsci dev` before fabrication.
+- **Layout:** see [DESIGN.md](DESIGN.md); its "Project status" table audits all 25 rules. Parts sit on a 1.27 mm grid in two rows of three 0603 parts (top y = +3.81: R1, C3, R3; bottom y = -3.81: R2, C1, C2; 3.81 mm pitch), with J1 and D1 mirrored at x = ±6.35. The rows are pulled in from the former ±5.08 so every pad stays at least 4.2 mm from a hole centre (screw head area, rule 16).
+- **Decoupling (rule 22, a must):** C3 (100 nF) sits directly above U1 pin 8 (VCC), 2.60 mm centre to centre. Its V5 pad is pin 2 (a capacitor is non-polar, so pin 1/pin 2 are swapped in the TSX) so the V5 pad is the one nearer VCC. C2 (CTRL bypass) sits below pin 5.
+- **Silkscreen:** designators 0.4 mm, 1.1 mm above their part (`pcbSx`); J1's V5/GND labels are 0.5 mm. J1 and the labels are explicit `<silkscreentext>` elements because `pcbSx` cannot tell a designator from a pin label.
+- **Schematic:** four `<schematicsection>`s (Power input, Timer core, Timing network, LED output) read left to right; U1 has supply on top and GND at the bottom.
 
 ## Finding JLCPCB parts
 
@@ -64,7 +66,7 @@ Before sharing or fabricating, work through the checks in order: `tsci check net
 ## References
 
 - [tscircuit docs](https://docs.tscircuit.com/); the full docs are also available as one text file at https://docs.tscircuit.com/llms.txt
-- [DESIGN.md](DESIGN.md): PCB alignment and routing rules
+- [DESIGN.md](DESIGN.md): PCB alignment, routing, mounting, schematic and placement rules
 - [tscircuit datasheets](https://tscircuit.com/datasheets)
 - [jlcsearch](https://jlcsearch.tscircuit.com/)
 - AI skill: [tscircuit/skill](https://github.com/tscircuit/skill), installed in `.claude/skills/tscircuit/`
