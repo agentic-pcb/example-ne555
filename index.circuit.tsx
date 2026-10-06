@@ -64,7 +64,7 @@ const NE555 = (props: ChipProps<typeof pinLabels>) => (
 )
 
 // 5V NE555 astable flasher. LED sinks through OUT, so it is ON while OUT is low:
-// ON = 0.693*R2*C1 = 0.3s, OFF = 0.693*(R1+R2)*C1 = 0.6s (R1 = R2).
+// ON = 0.693*R2*C1 = 0.33s, OFF = 0.693*(R1+R2)*C1 = 0.65s (R1 = R2 = 47k basic part, C1 = 10uF 25V).
 // PCB: 25 x 20 mm (widened from 20 x 20 so J1 clears its neighbours by the rule 37 courtyard gaps and has room for the rule 43 group label), 1.27 mm grid.
 // Two rows of 0603 parts at y = +-3.81 (x = -3.81 / 0 / +3.81), J1 and D1 mirrored at x = -+7.62, holes at (+-10.12, +-7.62) (2.38 mm from the corners).
 // C3 sits above U1 pin 8 (VCC) for DESIGN.md rule 24. Designators sit 1.1 mm above their part (pcbSx).
@@ -108,12 +108,13 @@ export default () => (
 
     <NE555 name="U1" schSheetName="Flasher" schSectionName="Core" schX={-0.1} schY={0} pcbX={0} pcbY={0} />
     <silkscreentext text="U1" pcbX={0} pcbY={2.55} fontSize={0.4} />
+    <capacitor name="C4" schSheetName="Flasher" schSectionName="Power" schX={-12.5} schY={3} schRotation="90deg" capacitance="10uF" maxDecouplingTraceLength={6} footprint="0603" supplierPartNumbers={{ jlcpcb: ["C96446"] }} pcbX={-5.08} pcbY={6.35} pcbSx={above} />
     <capacitor name="C2" schSheetName="Flasher" schSectionName="Core" schX={-3} schY={-2} schRotation="270deg" capacitance="10nF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C57112"] }} pcbX={3.81} pcbY={-3.81} pcbSx={above} />
     <capacitor name="C3" schSheetName="Flasher" schSectionName="Core" schX={0} schY={4} schRotation="270deg" capacitance="100nF" maxDecouplingTraceLength={3} footprint="0603" supplierPartNumbers={{ jlcpcb: ["C14663"] }} pcbX={0} pcbY={3.81} pcbSx={above} />
 
-    <resistor name="R1" schSheetName="Flasher" schSectionName="Timing" schX={-6} schY={2} schRotation="270deg" resistance="43k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2907038"] }} pcbX={-3.81} pcbY={3.81} pcbSx={above} />
-    <resistor name="R2" schSheetName="Flasher" schSectionName="Timing" schX={-6} schY={0} schRotation="270deg" resistance="43k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2907038"] }} pcbX={-3.81} pcbY={-3.81} pcbSx={above} />
-    <capacitor name="C1" schSheetName="Flasher" schSectionName="Timing" schX={-6} schY={-2} schRotation="270deg" capacitance="10uF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C19702"] }} pcbX={0} pcbY={-3.81} pcbSx={above} />
+    <resistor name="R1" schSheetName="Flasher" schSectionName="Timing" schX={-6} schY={2} schRotation="270deg" resistance="47k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C25819"] }} pcbX={-3.81} pcbY={3.81} pcbSx={above} />
+    <resistor name="R2" schSheetName="Flasher" schSectionName="Timing" schX={-6} schY={0} schRotation="270deg" resistance="47k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C25819"] }} pcbX={-3.81} pcbY={-3.81} pcbSx={above} />
+    <capacitor name="C1" schSheetName="Flasher" schSectionName="Timing" schX={-6} schY={-2} schRotation="270deg" capacitance="10uF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C96446"] }} pcbX={0} pcbY={-3.81} pcbSx={above} />
 
     <resistor name="R3" schSheetName="Flasher" schSectionName="Output" schX={6} schY={1.5} schRotation="270deg" resistance="330" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C23138"] }} pcbX={3.81} pcbY={3.81} pcbSx={above} />
     <led name="D1" schSheetName="Flasher" schSectionName="Output" schX={6} schY={-0.5} schRotation="270deg" color="red" footprint={ledFootprint} cadModel={<cadmodel modelUrl={led0603Model} />} supplierPartNumbers={{ jlcpcb: ["C965799"] }} pcbX={7.62} pcbY={0} pcbRotation="90deg" />
@@ -126,6 +127,8 @@ export default () => (
     <trace name="T4" from="U1.RESET" to="J1.V5" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([0, 0], [[-2.6, -1.905], [-3.76, -1.905], [-4.4, -1.27], [-7.62, -1.27]])} />
     <trace name="T5" from="U1.GND" to="net.GND" thickness="0.3mm" />
     <trace name="T6" from="R1.pin1" to="R3.pin1" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-3.81, 3.81], [[-4.635, 3.81], [-4.635, 5.2], [2.985, 5.2], [2.985, 3.81]])} />
+    <trace name="V5_C4" from="C4.pin2" to="R1.pin1" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-5.08, 6.35], [[-4.255, 6.35], [-4.635, 5.97], [-4.635, 3.81]])} />
+    <trace name="GND_C4" from="C4.pin1" to="net.GND" thickness="0.3mm" />
     <trace name="T7" from="C3.pin1" to="net.GND" thickness="0.3mm" />
 
     <trace name="CTRL" from="U1.CTRL" to="C2.pin1" />
