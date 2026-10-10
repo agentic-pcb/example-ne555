@@ -65,13 +65,16 @@ const NE555 = (props: ChipProps<typeof pinLabels>) => (
 
 // 5V NE555 astable flasher. LED sinks through OUT, so it is ON while OUT is low:
 // ON = 0.693*R2*C1 = 0.33s, OFF = 0.693*(R1+R2)*C1 = 0.65s (R1 = R2 = 47k basic part, C1 = 10uF 25V).
-// PCB: 23.2 x 15.3 mm (was 25 x 20), 1.27 mm grid; the width is set by J1's label stack on the left and the top-right hole vs R3, the height by C4's designator.
+// PCB: 23.6 x 16.2 mm, 2 layers, 1.27 mm grid; the width is set by D1 and J1's label stack, the height by C4 (assembled bodies 2.5 mm from the edge, LAYOUT_RULES.md rule 26).
 // Two rows of 0603 parts at y = +-3.81 (x = -2.54 / 1.27 / 5.08), J1 at x = -6.35 and D1 at x = 8.89 on the centre line, bulk cap C4 above J1 at (-6.35, 5.08).
 // Two diagonal holes (top right, bottom left) at W/2-inset, H/2-inset (2.38 mm from both edges of their corner).
-// C3 sits above U1 pin 8 (VCC) for DESIGN.md rule 24. Designators sit 1.1 mm above their part (pcbSx).
+// C3 sits above U1 pin 8 (VCC) for LAYOUT_RULES.md rule 24. Designators sit 1.1 mm above their part (pcbSx).
+// All copper is explicit (routeRemaining={false}); the from/to of every trace is the pair that draws its schematic wire, so a net that needs copper between other pads overlaps another trace of the same net.
+// Anchors (pcbX/pcbY of 0 degree parts) for traces that start on that part; their pcbPath points are relative to it
+const [R1, C1, U1] = [[-2.54, 3.81], [1.27, -3.81], [1.27, 0]] as [number, number][]
 const above = { "& silkscreentext": { pcbX: 0, pcbY: 1.1 } }
 
-// DESIGN.md rule 17: pcbPath for a hand-routed trace. pts is the route from pad to pad in board coordinates (rectilinear corners are fine); every 90 degree corner is cut into two 45 degree bends, d mm before and after it, other turns pass through.
+// LAYOUT_RULES.md rule 17: pcbPath for a hand-routed trace. pts is the route from pad to pad in board coordinates (rectilinear corners are fine); every 90 degree corner is cut into two 45 degree bends, d mm before and after it, other turns pass through.
 // pcbPath is relative to the centre of the `from` part (rotated with it), so `from` is a part at 0 degrees and `at` is its pcbX/pcbY; the pad ends are dropped (tscircuit adds them).
 const route = (at: [number, number], pts: [number, number][], d = 0.9) =>
   pts
@@ -86,11 +89,19 @@ const route = (at: [number, number], pts: [number, number][], d = 0.9) =>
     .slice(1, -1)
     .map(({ x, y }) => ({ x: x - at[0], y: y - at[1] }))
 
-// Board outline and the two diagonal M3 holes (top right, bottom left), the same inset from both edges of their corner (DESIGN.md rule 12)
-const [W, H, inset] = [23.2, 15.3, 2.38]
+// Crossing hop (rule 65): top wire point, via, short bottom segment a -> b, via, top wire point. A via inside a pcbPath needs a wire point at the same spot on both sides.
+const hop = (at: [number, number], a: [number, number], b: [number, number]) => {
+  const [pa, pb] = [{ x: a[0] - at[0], y: a[1] - at[1] }, { x: b[0] - at[0], y: b[1] - at[1] }]
+  return [pa, { ...pa, via: true, toLayer: "bottom" as const }, pa, pb, { ...pb, via: true, toLayer: "top" as const }, pb]
+}
+// LAYOUT_RULES.md rules 24, 61, 65: pcbPath of a GND stub, pad -> via beside the pad -> bottom pour. `at` is the 0 degree part's pcbX/pcbY, `via` the via position on the board; the via takes the board's pcbStyle size and sits 0.5 mm clear of the pad edge.
+const gndVia = (at: [number, number], via: [number, number]) => [{ x: via[0] - at[0], y: via[1] - at[1], via: true, toLayer: "bottom" as const }]
+
+// Board outline and the two diagonal M3 holes (top right, bottom left), the same inset from both edges of their corner (LAYOUT_RULES.md rule 12)
+const [W, H, inset] = [23.6, 16.2, 2.38]
 
 export default () => (
-  <board width={W} height={H} borderRadius={2} thickness="1.6mm" pcbStyle={{ silkscreenFontSize: 0.4 }} schTraceAutoLabelEnabled schMaxTraceDistance={5}>
+  <board layers={2} routeRemaining={false} width={W} height={H} borderRadius={2} thickness="1.6mm" pcbStyle={{ silkscreenFontSize: 0.4, viaPadDiameter: 0.6, viaHoleDiameter: 0.3 }} schTraceAutoLabelEnabled schMaxTraceDistance={5}>
 
     <schematicsheet name="Flasher" displayName="NE555 LED flasher" sheetIndex={0} sheetWidth="220mm" sheetHeight="95mm" />
     <schematicsection name="Power" displayName="Power input" />
@@ -122,31 +133,34 @@ export default () => (
     <led name="D1" schSheetName="Flasher" schSectionName="Output" schX={6} schY={-0.5} schRotation="270deg" color="red" footprint={ledFootprint} cadModel={<cadmodel modelUrl={led0603Model} />} supplierPartNumbers={{ jlcpcb: ["C965799"] }} pcbX={8.89} pcbY={0} pcbRotation="90deg" />
     <silkscreentext text="D1" pcbX={8.89} pcbY={1.9} fontSize={0.4} />
 
-    <trace name="T1" from="R1.pin1" to="J1.V5" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-2.54, 3.81], [[-3.365, 3.81], [-5.18, 3.81], [-5.18, -1.27], [-6.35, -1.27]], 1)} />
-    <trace name="T2" from="J1.GND" to="net.GND" thickness="0.3mm" />
+    <trace name="T1" from="R1.pin1" to="J1.V5" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-2.54, 3.81], [[-3.365, 3.81], [-5.18, 3.81], [-5.18, -1.27], [-6.35, -1.27]], 0.925)} />
+    <trace name="T2" from="J1.GND" to="net.GND" thickness="0.3mm" pcbPath={[]} />
 
     <trace name="T3" from="C3.pin2" to="U1.VCC" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([1.27, 3.81], [[2.095, 3.81], [3.87, 2.035], [3.87, 1.905]])} />
     <trace name="T4" from="U1.RESET" to="J1.V5" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([1.27, 0], [[-1.33, -1.905], [-2.49, -1.905], [-3.13, -1.27], [-6.35, -1.27]])} />
-    <trace name="T5" from="U1.GND" to="net.GND" thickness="0.3mm" />
+    <trace name="T5" from="U1.GND" to="net.GND" thickness="0.3mm" pcbPath={gndVia([1.27, 0], [-2.73, 1.905])} />
     <trace name="T6" from="R1.pin1" to="R3.pin1" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-2.54, 3.81], [[-3.365, 3.81], [-3.365, 5.2], [4.255, 5.2], [4.255, 3.81]])} />
-    <trace name="V5_C4" from="C4.pin2" to="R1.pin1" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-6.35, 5.08], [[-5.525, 5.08], [-4.635, 5.08], [-3.365, 3.81]])} />
-    <trace name="GND_C4" from="C4.pin1" to="net.GND" thickness="0.3mm" />
-    <trace name="T7" from="C3.pin1" to="net.GND" thickness="0.3mm" />
+    <trace name="V5_C4" from="C4.pin2" to="R1.pin1" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([-6.35, 5.08], [[-5.525, 5.08], [-4.255, 3.81], [-3.365, 3.81]])} />
+    <trace name="GND_C4" from="C4.pin1" to="net.GND" thickness="0.3mm" pcbPath={gndVia([-6.35, 5.08], [-8.07, 5.08])} />
+    <trace name="T7" from="C3.pin1" to="net.GND" thickness="0.3mm" pcbPath={gndVia([1.27, 3.81], [-0.55, 3.81])} />
 
-    <trace name="CTRL" from="U1.CTRL" to="C2.pin1" />
-    <trace name="T9" from="C2.pin2" to="net.GND" thickness="0.3mm" />
+    <trace name="CTRL" from="U1.CTRL" to="C2.pin1" thickness="0.15mm" pcbPath={[]} />
+    <trace name="T9" from="C2.pin2" to="net.GND" thickness="0.15mm" pcbPath={gndVia([5.08, -3.81], [6.81, -3.81])} />
 
-    <trace name="T10" from="R1.pin1" to="net.V5" thickness="0.3mm" />
-    <trace name="T11" from="R1.pin2" to="R2.pin1" />
-    <trace name="DISCH" from="R2.pin1" to="U1.DISCH" />
-    <trace name="T12" from="R2.pin2" to="C1.pin1" />
-    <trace name="T13" from="U1.THRES" to="R2.pin2" />
-    <trace name="THRES" from="U1.TRIG" to="U1.THRES" />
-    <trace name="T17" from="C1.pin2" to="net.GND" thickness="0.3mm" />
+    <trace name="T10" from="R1.pin1" to="net.V5" thickness="0.3mm" pcbPath={[]} />
+    {/* DISCH net: R1.pin2 -> R2.pin1 on the left (T11, one two-via hop under the V5 wall T4, rule 65) and R1.pin2 -> U1.DISCH under the IC body (DISCH) */}
+    <trace name="T11" from="R1.pin2" to="R2.pin1" thickness="0.15mm" pcbPath={[...route(R1, [[-1.715, 3.81], [-1.715, 2.8], [-3.9, 2.8], [-3.9, -0.45]], 0.5), ...hop(R1, [-3.9, -0.45], [-3.9, -2.3]), ...route(R1, [[-3.9, -2.3], [-3.365, -2.835], [-3.365, -3.81]])]} />
+    <trace name="DISCH" from="R1.pin2" to="U1.DISCH" thickness="0.15mm" pcbPath={route(R1, [[-1.715, 3.81], [-1.715, 2.8], [0.5, 2.8], [0.5, 0.635], [3.87, 0.635]], 0.5)} />
+    <trace name="T12" from="R2.pin2" to="C1.pin1" thickness="0.15mm" pcbPath={[]} />
+    {/* THRES net: U1.THRES -> TRIG-THRES jumper line -> two-via hop under the OUT trace -> C1.pin1 -> R2.pin2 (overlaps T12) */}
+    <trace name="T13" from="U1.THRES" to="R2.pin2" thickness="0.15mm" pcbPath={[{ x: 0.77 - U1[0], y: -0.635 - U1[1] }, ...hop(U1, [0.445, -0.31], [0.445, -1.9]), { x: 0.445 - U1[0], y: -3.81 - U1[1] }]} />
+    <trace name="THRES" from="U1.TRIG" to="U1.THRES" thickness="0.15mm" pcbPath={route(U1, [[-1.33, 0.635], [-0.5, 0.635], [0.77, -0.635], [3.87, -0.635]])} />
 
+    <trace name="T17" from="C1.pin2" to="net.GND" thickness="0.15mm" pcbPath={gndVia([1.27, -3.81], [2.99, -3.81])} />
     <trace name="T18" from="R3.pin1" to="U1.VCC" thickness="0.3mm" schDisplayLabel="V5" pcbPath={route([5.08, 3.81], [[4.255, 3.81], [4.255, 1.905], [3.87, 1.905]], 0.2)} />
-    <trace name="LED_A" from="R3.pin2" to="D1.anode" />
-    <trace name="OUT" from="D1.cathode" to="U1.OUT" />
+    <trace name="LED_A" from="R3.pin2" to="D1.anode" thickness="0.15mm" pcbPath={[]} />
+    {/* OUT leaves U1 between THRES and CTRL (y = -1.27) and runs straight to D1; points are in D1's frame (90 degrees: local x = y, local y = 8.89 - x) */}
+    <trace name="OUT" from="D1.cathode" to="U1.OUT" thickness="0.15mm" pcbPath={[[8.37, -1.27], [-0.315, -1.27], [-0.95, -0.635]].map(([x, y]) => ({ x: y, y: 8.89 - x }))} />
 
     <copperpour connectsTo="net.GND" layer="bottom" clearance="0.2mm" boardEdgeMargin="1.27mm" />
   </board>

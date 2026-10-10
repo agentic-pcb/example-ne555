@@ -10,9 +10,11 @@
     "dev": "tsci dev",
     "check:fast": "tsc --noEmit",
     "check:wiring": "npm run check:fast && tsci check netlist && tsci check schematic-placement",
-    "check:full": "npm run check:wiring && tsci build --disable-parts-engine && tsci check shorts",
+    "check:vias": "node scripts/check-vias.mjs dist/index/circuit.json",
+    "check:full": "npm run check:wiring && tsci build --disable-parts-engine && npm run check:vias && tsci check shorts",
     "export:gerbers": "mkdir -p dist && tsci export index.circuit.tsx -f gerbers --disable-parts-engine -o dist/gerbers.zip",
     "export:images": "tsci build --disable-parts-engine --pcb-png --3d-png && mkdir -p docs/images && cp dist/index/pcb.png dist/index/3d.png docs/images/",
+    "update:claude": "curl -fsSL https://raw.githubusercontent.com/agentic-pcb/example-base/main/CLAUDE.md -o CLAUDE.md",
     "update:llms": "mkdir -p docs && curl -fsSL https://docs.tscircuit.com/llms.txt -o docs/llms.txt",
     "update:skill": "npx --yes skills add tscircuit/skill -a claude-code --copy -y"
   },
